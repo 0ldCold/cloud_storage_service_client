@@ -277,66 +277,14 @@ class _EntrySelectionState extends State<EntrySelection> {
               time: _formatterTime.format(time),
               text: text)
           .then((res) {
-
+        myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
+          main.events = newEvents;
+          widget.notifyParent();
+        });
       });
 
     }
   }
-  // _createEntry(String text, [DateTime time]) {
-  //   if (time == null) {
-  //     time = DateTime.now();
-  //   }
-  //   if (timesList == null || timesList.length < 5) {
-  //     myHTTPlib
-  //         .sendRequestPost('create',
-  //         id: main.userId.toString(),
-  //         date: _formatterDate.format(DateTime.now()),
-  //         time: _formatterTime.format(time),
-  //         text: text)
-  //         .then((mes1) {
-  //       myHTTPlib
-  //           .sendRequestGet(
-  //           'view', main.userId.toString(), _formatterDate.format(main.selectedDate))
-  //           .then((messageBody) {
-  //         if (main.messageText.substring(0, 3) == "404") {
-  //           myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
-  //             main.messageText = messageBody;
-  //             main.events = newEvents;
-  //             widget.notifyParent();
-  //           });
-  //         } else
-  //           main.messageText = messageBody;
-  //         widget.notifyParent();
-  //       });
-  //     });
-  //   }
-  // }
-
-  // _deleteEntry(String time) {
-  //   myHTTPlib
-  //       .sendRequestGet(
-  //           'delete', main.userId.toString(), _formatterDate.format(main.selectedDate), time)
-  //       .then((mes1) {
-  //     myHTTPlib
-  //         .sendRequestGet('view', main.userId.toString(), _formatterDate.format(main.selectedDate))
-  //         .then((messageBody) {
-  //       main.messageText = messageBody;
-  //       if (messageBody.substring(0, 3) == "404") {
-  //         myHTTPlib
-  //             .sendRequestGet(
-  //                 'delete', main.userId.toString(), _formatterDate.format(main.selectedDate))
-  //             .then((mes2) {
-  //           myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
-  //             main.events = newEvents;
-  //             widget.notifyParent();
-  //           });
-  //         });
-  //       } else
-  //         widget.notifyParent();
-  //     });
-  //   });
-  // }
-
   _deleteEntry(String time) {
     myHTTPlib
         .sendRequestDelete(
