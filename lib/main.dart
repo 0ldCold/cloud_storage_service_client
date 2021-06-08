@@ -31,14 +31,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     http.initAllEntry('1').then((newEvents) {
-      var date = _formatterDate.format(selectedDate);
-
       events = newEvents;
       http.requestPermission();
-      http.sendRequestGet('view', '1', date).then((messageBody) {
-        messageText = messageBody;
-        setState(() {});
-      });
     });
   }
 

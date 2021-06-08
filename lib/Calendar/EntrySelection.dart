@@ -23,6 +23,7 @@ class _EntrySelectionState extends State<EntrySelection> {
   List<String> timesList;
   String selectedTime;
   String noteText;
+  bool fileCheck;
 
   final myController = TextEditingController();
   File pathUserFile;
@@ -51,7 +52,7 @@ class _EntrySelectionState extends State<EntrySelection> {
         {
           // timesList = null;
           //Список записей
-          if(main.messageText.isEmpty){
+          if (main.messageText.isEmpty) {
             break;
           }
           timesList = jsonToList(main.messageText);
@@ -65,25 +66,10 @@ class _EntrySelectionState extends State<EntrySelection> {
       case 3:
         {
           //Запись с файлом
-          return _buildNoteWithFile();
+          return _buildNoteWithFile(noteText);
         }
     }
     return _buildEmpty();
-    // if (main.messageText.startsWith("time:")) {
-    //   timesList = main.messageText.substring(5, main.messageText.length).split('\\,\\');
-    //   if (timesList[0] != "") {
-    //     mode = 1;
-    //   } else {
-    //     mode = 404;
-    //   }
-    // } else if (main.messageText.startsWith("text:")) {
-    //   mode = 2;
-    // } else if (main.messageText.startsWith("text+file:")) {
-    //   timesList = main.messageText.substring(10, main.messageText.length).split('\\,\\');
-    //   mode = 3;
-    // } else {
-    //   mode = 404;
-    // }
   }
 
   Widget _buildNoteList() {
@@ -103,14 +89,22 @@ class _EntrySelectionState extends State<EntrySelection> {
                       child: ElevatedButton(
                           onPressed: () {
                             selectedTime = timesList[index];
-                            main.mode = 2;
-
                             String date = _formatterDate.format(main.selectedDate);
                             myHTTPlib
                                 .sendRequestGet('view', main.userId.toString(), date, selectedTime)
                                 .then((messageBody) {
                               noteText = jsonGetNoteText(messageBody);
-                              widget.notifyParent();
+                              myHTTPlib
+                                  .sendRequestGet(
+                                      'file', main.userId.toString(), date, selectedTime, 'check')
+                                  .then((value) {
+                                fileCheck = value == 'true' ? true : false;
+                                if(fileCheck)
+                                  main.mode = 3;
+                                else
+                                  main.mode = 2;
+                                widget.notifyParent();
+                              });
                             });
                           },
                           child: Text(_reformatTime(timesList[index]))));
@@ -138,7 +132,7 @@ class _EntrySelectionState extends State<EntrySelection> {
     );
   }
 
-  Widget _buildNoteWithFile() {
+  Widget _buildNoteWithFile(String noteText) {
     return Row(
       children: <Widget>[
         Center(
@@ -146,12 +140,12 @@ class _EntrySelectionState extends State<EntrySelection> {
         ),
         Expanded(
           flex: 3,
-          child: Center(child: Text(timesList[0])),
+          child: Center(child: Text(noteText)),
         ),
         IconButton(
             icon: Icon(Icons.file_download),
             onPressed: () {
-              _downloadEntry(timesList[1]);
+              _downloadEntry("test.txt");
             }),
       ],
     );
@@ -242,16 +236,8 @@ class _EntrySelectionState extends State<EntrySelection> {
                   myController.text.replaceAll(" ", "") != "") {
                 if (pathUserFile != null) {
                   DateTime time = DateTime.now();
-                  myHTTPlib
-                      .upload("1", _formatterDate.format(DateTime.now()),
-                          _formatterTime.format(time), pathUserFile)
-                      .then((value) {
-                    if (value == "200") {
-                      _createEntry(myController.text, time);
-                      Navigator.pop(context);
-                    }
-                  });
-                  pathUserFile = null;
+                  _uploadFile(myController.text);
+                  Navigator.pop(context);
                 } else {
                   _createEntry(myController.text);
                   Navigator.pop(context);
@@ -282,22 +268,22 @@ class _EntrySelectionState extends State<EntrySelection> {
           widget.notifyParent();
         });
       });
-
     }
   }
+
   _deleteEntry(String time) {
     myHTTPlib
         .sendRequestDelete(
-        'delete', main.userId.toString(), _formatterDate.format(main.selectedDate), time)
+            'delete', main.userId.toString(), _formatterDate.format(main.selectedDate), time)
         .then((isOk) {
-      if(isOk){
+      if (isOk) {
         myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
           main.events = newEvents;
           main.mode = 0;
           widget.notifyParent();
         });
-      }
-      else widget.notifyParent();
+      } else
+        widget.notifyParent();
     });
   }
 
@@ -307,6 +293,32 @@ class _EntrySelectionState extends State<EntrySelection> {
     }).catchError((error) {
       print("Error: $error");
     });
+  }
+
+  _uploadFile(String text, [DateTime time]) {
+    if (time == null) {
+      time = DateTime.now();
+    }
+    if (timesList == null || timesList.length < 5) {
+      myHTTPlib
+          .sendRequestPost('create',
+              id: main.userId.toString(),
+              date: _formatterDate.format(DateTime.now()),
+              time: _formatterTime.format(time),
+              text: text)
+          .then((res) {
+        myHTTPlib
+            .upload(main.userId.toString(), _formatterDate.format(DateTime.now()),
+                _formatterTime.format(time), pathUserFile)
+            .then((value) {
+          myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
+            pathUserFile = null;
+            main.events = newEvents;
+            widget.notifyParent();
+          });
+        });
+      });
+    }
   }
 
   _downloadEntry(String fileName) {
@@ -331,7 +343,7 @@ class _EntrySelectionState extends State<EntrySelection> {
     List<int> _bytes = [];
 
     _response = await http.Client()
-        .send(http.Request('GET', Uri.parse(main.serverURI + "download/$id/$date/$time")));
+        .send(http.Request('GET', Uri.parse(main.serverURI + "file/$id/$date/$time")));
     String path =
         await ExtStorage.getExternalStoragePublicDirectory(ExtStorage.DIRECTORY_DOWNLOADS);
     _total = _response.contentLength;

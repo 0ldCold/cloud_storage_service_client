@@ -12,7 +12,7 @@ import 'Calendar/event.dart';
 import 'main.dart' as main;
 import 'json.dart';
 
-Future<String> sendRequestGet(String serverMethod, [String id, String date, String time]) async {
+Future<String> sendRequestGet(String serverMethod, [String id, String date, String time, String mod]) async {
   String uri = main.serverURI + serverMethod;
   if (id != null) {
     uri = uri + '/' + id;
@@ -20,6 +20,9 @@ Future<String> sendRequestGet(String serverMethod, [String id, String date, Stri
       uri = uri + '/' + date;
       if (time != null) {
         uri = uri + '/' + time;
+        if (mod != null){
+          uri = uri + '/' + mod;
+        }
       }
     }
   }
@@ -104,7 +107,7 @@ Future<String> upload(String id, String date, String time, File imageFile) async
 
   var stream = new http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
   var length = await imageFile.length();
-  var uri = Uri.parse(main.serverURI + "upload/$id/$date/$time");
+  var uri = Uri.parse(main.serverURI + "file/$id/$date/$time");
   var request = new http.MultipartRequest("POST", uri);
   var multipartFile =
       new http.MultipartFile('file', stream, length, filename: basename(imageFile.path));
@@ -112,7 +115,7 @@ Future<String> upload(String id, String date, String time, File imageFile) async
   request.headers
       .addAll({"Content-Disposition": "attachment; filename=${basename(imageFile.path)}"});
   var response = await request.send();
-  print('POST ' +
+  print('POST     ' +
       dateNow.toString() +
       ' ' +
       main.serverURI +
