@@ -1,4 +1,4 @@
-import 'main.dart' as main;
+import '../main.dart' as main;
 
 import 'dart:convert';
 
@@ -11,17 +11,14 @@ List<String> jsonToList(String jsonString){
   return resStrList;
 }
 
-
-
 String jsonGetNoteText(String jsonString){
   Map<String, dynamic> resMap = jsonDecode(jsonString);
   return resMap['text'];
 }
 
 bool isJson(String jsonString){
-  var res;
   try{
-    res = jsonDecode(jsonString);
+    jsonDecode(jsonString);
   }catch(e){
     return false;
   }

@@ -3,8 +3,8 @@ import 'package:flutter_date_pickers/flutter_date_pickers.dart' as dp;
 import 'package:intl/intl.dart';
 
 import '../main.dart' as main;
-import '../Http.dart' as myHTTPlib;
-import 'event.dart';
+import 'Http.dart' as httpLib;
+import '../model/entities/event.dart';
 
 class DayPickerPage extends StatefulWidget {
   final Function() notifyParent;
@@ -65,7 +65,7 @@ class _DayPickerPageState extends State<DayPickerPage> {
     main.selectedDate = newDate;
     main.mode = 1;
     String date = formatter.format(newDate);
-    myHTTPlib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
+    httpLib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
       main.messageText = messageBody;
       widget.notifyParent();
     });

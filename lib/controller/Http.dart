@@ -8,8 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'Calendar/event.dart';
-import 'main.dart' as main;
+import '../model/entities/event.dart';
+import '../main.dart' as main;
 import 'json.dart';
 
 Future<String> sendRequestGet(String serverMethod, [String id, String date, String time, String mod]) async {

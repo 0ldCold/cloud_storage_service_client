@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../Http.dart' as myHTTPlib;
-import '../json.dart';
+import '../controller/Http.dart' as httpLib;
+import '../controller/json.dart';
 import '../main.dart' as main;
 
 class EntrySelection extends StatefulWidget {
@@ -91,17 +91,17 @@ class _EntrySelectionState extends State<EntrySelection> {
                           onPressed: () {
                             selectedTime = timesList[index];
                             String date = _formatterDate.format(main.selectedDate);
-                            myHTTPlib
+                            httpLib
                                 .sendRequestGet('view', main.userId.toString(), date, selectedTime)
                                 .then((messageBody) {
                               noteText = jsonGetNoteText(messageBody);
-                              myHTTPlib
+                              httpLib
                                   .sendRequestGet(
                                       'file', main.userId.toString(), date, selectedTime, 'name')
                                   .then((value) {
-                                    fileName = value;
-                                fileCheck = fileName!=null && fileName.isNotEmpty;
-                                if(fileCheck)
+                                fileName = value;
+                                fileCheck = fileName != null && fileName.isNotEmpty;
+                                if (fileCheck)
                                   main.mode = 3;
                                 else
                                   main.mode = 2;
@@ -258,17 +258,17 @@ class _EntrySelectionState extends State<EntrySelection> {
       time = DateTime.now();
     }
     if (timesList == null || timesList.length < 5) {
-      myHTTPlib
+      httpLib
           .sendRequestPost('create',
               id: main.userId.toString(),
               date: _formatterDate.format(DateTime.now()),
               time: _formatterTime.format(time),
               text: text)
           .then((res) {
-        myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
+        httpLib.initAllEntry(main.userId.toString()).then((newEvents) {
           main.events = newEvents;
           String date = _formatterDate.format(main.selectedDate);
-          myHTTPlib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
+          httpLib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
             main.messageText = messageBody;
             widget.notifyParent();
           });
@@ -278,12 +278,12 @@ class _EntrySelectionState extends State<EntrySelection> {
   }
 
   _deleteEntry(String time) {
-    myHTTPlib
+    httpLib
         .sendRequestDelete(
             'delete', main.userId.toString(), _formatterDate.format(main.selectedDate), time)
         .then((isOk) {
       if (isOk) {
-        myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
+        httpLib.initAllEntry(main.userId.toString()).then((newEvents) {
           main.events = newEvents;
           main.mode = 0;
           widget.notifyParent();
@@ -306,18 +306,18 @@ class _EntrySelectionState extends State<EntrySelection> {
       time = DateTime.now();
     }
     if (timesList == null || timesList.length < 5) {
-      myHTTPlib
+      httpLib
           .sendRequestPost('create',
               id: main.userId.toString(),
               date: _formatterDate.format(DateTime.now()),
               time: _formatterTime.format(time),
               text: text)
           .then((res) {
-        myHTTPlib
+        httpLib
             .upload(main.userId.toString(), _formatterDate.format(DateTime.now()),
                 _formatterTime.format(time), pathUserFile)
             .then((value) {
-          myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
+          httpLib.initAllEntry(main.userId.toString()).then((newEvents) {
             pathUserFile = null;
             main.events = newEvents;
             widget.notifyParent();

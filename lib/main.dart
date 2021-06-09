@@ -3,10 +3,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
-import 'Calendar/EntrySelection.dart';
-import 'Calendar/day_picker_page.dart';
-import 'Calendar/event.dart';
-import 'Http.dart' as http;
+import 'view/EntrySelection.dart';
+import 'controller/DayPickerPage.dart';
+import 'model/entities/event.dart';
+import 'controller/Http.dart' as http;
 
 var logger = Logger();
 final String serverURI = 'http://92.255.182.216:8000/';
