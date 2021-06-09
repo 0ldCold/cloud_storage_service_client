@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('CloudService0720')),
+        appBar: AppBar(title: Text('CloudStorage Service')),
         body: Center(
             child: Column(
           children: <Widget>[

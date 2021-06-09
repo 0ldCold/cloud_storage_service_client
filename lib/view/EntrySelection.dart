@@ -26,13 +26,13 @@ class _EntrySelectionState extends State<EntrySelection> {
   bool fileCheck;
   String fileName;
 
-  final myController = TextEditingController();
+  final alertDialogController = TextEditingController();
   File pathUserFile;
 
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    myController.dispose();
+    alertDialogController.dispose();
     super.dispose();
   }
 
@@ -89,25 +89,7 @@ class _EntrySelectionState extends State<EntrySelection> {
                   return Center(
                       child: ElevatedButton(
                           onPressed: () {
-                            selectedTime = timesList[index];
-                            String date = _formatterDate.format(main.selectedDate);
-                            httpLib
-                                .sendRequestGet('view', main.userId.toString(), date, selectedTime)
-                                .then((messageBody) {
-                              noteText = jsonGetNoteText(messageBody);
-                              httpLib
-                                  .sendRequestGet(
-                                      'file', main.userId.toString(), date, selectedTime, 'name')
-                                  .then((value) {
-                                fileName = value;
-                                fileCheck = fileName != null && fileName.isNotEmpty;
-                                if (fileCheck)
-                                  main.mode = 3;
-                                else
-                                  main.mode = 2;
-                                widget.notifyParent();
-                              });
-                            });
+                            _handlerNoteListButton(index);
                           },
                           child: Text(_reformatTime(timesList[index]))));
                 }
@@ -118,6 +100,26 @@ class _EntrySelectionState extends State<EntrySelection> {
         ),
       ],
     );
+  }
+
+  void _handlerNoteListButton(int index) async {
+    selectedTime = timesList[index];
+    String date = _formatterDate.format(main.selectedDate);
+
+    String messageResponse =
+        await httpLib.sendRequestGet('view', main.userId.toString(), date, selectedTime);
+    noteText = jsonGetNoteText(messageResponse);
+
+    fileName =
+        await httpLib.sendRequestGet('file', main.userId.toString(), date, selectedTime, 'name');
+    if (fileName != null && fileName.trim().isNotEmpty) {
+      main.mode = 3;
+    } else {
+      main.mode = 2;
+      fileName = null;
+    }
+
+    widget.notifyParent();
   }
 
   Widget _buildNoteWithoutFile(String noteText) {
@@ -147,7 +149,7 @@ class _EntrySelectionState extends State<EntrySelection> {
         IconButton(
             icon: Icon(Icons.file_download),
             onPressed: () {
-              _downloadEntry(fileName);
+              _handlerNoteWithFileButton(fileName);
             }),
       ],
     );
@@ -173,7 +175,7 @@ class _EntrySelectionState extends State<EntrySelection> {
     );
     return ElevatedButton(
       onPressed: () {
-        _deleteEntry(selectedTime);
+        _handlerDeleteButton(selectedTime);
       },
       style: style,
       child: Text(
@@ -189,11 +191,7 @@ class _EntrySelectionState extends State<EntrySelection> {
     );
     return ElevatedButton(
       onPressed: () {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return _buildAlertDialog();
-            });
+        _openAlertDialog();
       },
       style: style,
       child: const Text(
@@ -203,131 +201,105 @@ class _EntrySelectionState extends State<EntrySelection> {
     );
   }
 
-  AlertDialog _buildAlertDialog() {
-    return AlertDialog(
-        content: Container(
-      height: 100,
-      width: 250,
-      child: Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Container(
-                width: 200.0,
-                child: TextFormField(
-                  controller: myController,
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-                    return null;
-                  },
+  Future<dynamic> _openAlertDialog() {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              content: Container(
+            height: 100,
+            width: 250,
+            child: Column(
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 200.0,
+                      child: TextFormField(
+                        controller: alertDialogController,
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.attach_file),
+                        onPressed: () {
+                          _getFileFromMemory();
+                        }),
+                  ],
                 ),
-              ),
-              IconButton(
-                  icon: Icon(Icons.attach_file),
+                ElevatedButton(
                   onPressed: () {
-                    _uploadEntry();
-                  }),
-            ],
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (myController.text != "" &&
-                  myController.text != null &&
-                  myController.text.replaceAll(" ", "") != "") {
-                if (pathUserFile != null) {
-                  DateTime time = DateTime.now();
-                  _uploadFile(myController.text);
-                  Navigator.pop(context);
-                } else {
-                  _createEntry(myController.text);
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: Text('Добавить'),
-          ),
-        ],
-      ),
-    ));
+                    _handlerAlertDialogButton();
+                  },
+                  child: Text('Добавить'),
+                ),
+              ],
+            ),
+          ));
+        });
   }
 
-  _createEntry(String text, [DateTime time]) {
-    if (time == null) {
-      time = DateTime.now();
-    }
-    if (timesList == null || timesList.length < 5) {
-      httpLib
-          .sendRequestPost('create',
-              id: main.userId.toString(),
-              date: _formatterDate.format(DateTime.now()),
-              time: _formatterTime.format(time),
-              text: text)
-          .then((res) {
-        httpLib.initAllEntry(main.userId.toString()).then((newEvents) {
-          main.events = newEvents;
-          String date = _formatterDate.format(main.selectedDate);
-          httpLib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
-            main.messageText = messageBody;
-            widget.notifyParent();
-          });
-        });
-      });
-    }
-  }
+  void _handlerAlertDialogButton([DateTime dateTime]) async {
+    if (alertDialogController.text != null &&
+        alertDialogController.text.isNotEmpty &&
+        alertDialogController.text.trim().isNotEmpty) {
+      String text = alertDialogController.text;
+      if (dateTime == null) {
+        dateTime = DateTime.now();
+      }
+      String time = _formatterTime.format(dateTime);
+      String date = _formatterDate.format(dateTime);
+      if (timesList == null || timesList.length < 5) {
+        await httpLib.sendRequestPost('create',
+            id: main.userId.toString(), date: date, time: time, text: text);
+        var newEvents = await httpLib.initAllEntry(main.userId.toString());
+        main.events = newEvents;
 
-  _deleteEntry(String time) {
-    httpLib
-        .sendRequestDelete(
-            'delete', main.userId.toString(), _formatterDate.format(main.selectedDate), time)
-        .then((isOk) {
-      if (isOk) {
-        httpLib.initAllEntry(main.userId.toString()).then((newEvents) {
-          main.events = newEvents;
-          main.mode = 0;
-          widget.notifyParent();
-        });
-      } else
+        if (pathUserFile != null) {
+          //прикрепить файл к записи, если он(файл) есть
+          await httpLib.upload(main.userId.toString(), date, time, pathUserFile);
+          pathUserFile = null;
+        }
+
+        main.messageText = await httpLib.sendRequestGet('view', main.userId.toString(), date);
+        main.mode = 1;
+        Navigator.pop(context);
         widget.notifyParent();
-    });
+      }
+    }
   }
 
-  _uploadEntry() {
+  _getFileFromMemory() {
     FilePicker.getFile().then((value) {
       pathUserFile = value;
     }).catchError((error) {
-      print("Error: $error");
+      main.logger.e(error);
     });
   }
 
-  _uploadFile(String text, [DateTime time]) {
-    if (time == null) {
-      time = DateTime.now();
+  _handlerDeleteButton(String time) async {
+    String date = _formatterDate.format(DateTime.now());
+
+    bool isOk = await httpLib.sendRequestDelete(
+        'delete', main.userId.toString(), _formatterDate.format(main.selectedDate), time);
+
+    if (isOk) {
+      var newEvents = await httpLib.initAllEntry(main.userId.toString());
+      main.events = newEvents;
     }
-    if (timesList == null || timesList.length < 5) {
-      httpLib
-          .sendRequestPost('create',
-              id: main.userId.toString(),
-              date: _formatterDate.format(DateTime.now()),
-              time: _formatterTime.format(time),
-              text: text)
-          .then((res) {
-        httpLib
-            .upload(main.userId.toString(), _formatterDate.format(DateTime.now()),
-                _formatterTime.format(time), pathUserFile)
-            .then((value) {
-          httpLib.initAllEntry(main.userId.toString()).then((newEvents) {
-            pathUserFile = null;
-            main.events = newEvents;
-            widget.notifyParent();
-          });
-        });
-      });
-    }
+
+    main.messageText = await httpLib.sendRequestGet('view', main.userId.toString(), date);
+    main.mode = 1;
+
+    widget.notifyParent();
   }
 
-  _downloadEntry(String fileName) {
+  _handlerNoteWithFileButton(String fileName) {
     String date = _formatterDate.format(main.selectedDate);
     String time = selectedTime;
     _downloadFile(main.userId.toString(), date, time, fileName);
