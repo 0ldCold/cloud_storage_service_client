@@ -1,12 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:cloud_storage_service_client/controller/httpLib.dart' as httpLib;
 import 'package:cloud_storage_service_client/controller/json.dart';
-import 'package:cloud_storage_service_client/main.dart' as main;
 import 'package:cloud_storage_service_client/controller/NotesViewer/NotesViewerController.dart';
+import 'package:cloud_storage_service_client/model/NotesViewerModel.dart' as model;
 
 class NotesViewer extends StatefulWidget {
   final Function() notifyParent;
@@ -18,15 +16,8 @@ class NotesViewer extends StatefulWidget {
 }
 
 class _NotesViewerState extends State<NotesViewer> {
-  List<String> timesList;
-  String selectedTime;
-  String noteText;
-  bool fileCheck;
-  String fileName;
-
   final alertDialogController = TextEditingController();
-  File pathUserFile;
-  NotesViewerController _notesViewerController = new NotesViewerController();
+  final NotesViewerController _notesViewerController = new NotesViewerController();
 
   @override
   void dispose() {
@@ -47,26 +38,26 @@ class _NotesViewerState extends State<NotesViewer> {
 
   @override
   Widget build(BuildContext context) {
-    switch (main.mode) {
+    switch (model.mode) {
       case 1:
         {
-          timesList = null;
+          model.timesList = null;
           //Список записей
-          if (main.messageText.isEmpty) {
+          if (model.messageText.isEmpty) {
             break;
           }
-          timesList = jsonToList(main.messageText);
+          model.timesList = jsonToList(model.messageText);
           return _buildNoteList();
         }
       case 2:
         {
           //Запись без файла
-          return _buildNoteWithoutFile(noteText);
+          return _buildNoteWithoutFile(model.noteText);
         }
       case 3:
         {
           //Запись с файлом
-          return _buildNoteWithFile(noteText);
+          return _buildNoteWithFile(model.noteText);
         }
     }
     return _buildEmpty();
@@ -79,10 +70,10 @@ class _NotesViewerState extends State<NotesViewer> {
           flex: 3,
           child: ListView.builder(
               padding: const EdgeInsets.all(8),
-              itemCount: timesList.length,
+              itemCount: model.timesList.length,
               shrinkWrap: true,
               itemBuilder: (BuildContext context, int index) {
-                if (timesList.length == 0) {
+                if (model.timesList.length == 0) {
                   return Text('Записей нет!');
                 } else {
                   return Center(
@@ -90,7 +81,7 @@ class _NotesViewerState extends State<NotesViewer> {
                           onPressed: () {
                             _handlerNoteListButton(index);
                           },
-                          child: Text(_reformatTime(timesList[index]))));
+                          child: Text(_reformatTime(model.timesList[index]))));
                 }
               }),
         ),
@@ -102,17 +93,17 @@ class _NotesViewerState extends State<NotesViewer> {
   }
 
   Future<void> _handlerNoteListButton(int index) async {
-    selectedTime = timesList[index];
-    String date = _formatterDate.format(main.selectedDate);
+    model.selectedTime = model.timesList[index];
+    String date = _formatterDate.format(model.selectedDate);
 
-    noteText = await _notesViewerController.getNoteText(date, selectedTime);
+    model.noteText = await _notesViewerController.getNoteText(date, model.selectedTime);
 
-    fileName = await _notesViewerController.getNoteFileName(date, selectedTime);
-    if (fileName != null && fileName.trim().isNotEmpty) {
-      main.mode = 3;
+    model.fileName = await _notesViewerController.getNoteFileName(date, model.selectedTime);
+    if (model.fileName != null && model.fileName.trim().isNotEmpty) {
+      model.mode = 3;
     } else {
-      main.mode = 2;
-      fileName = null;
+      model.mode = 2;
+      model.fileName = null;
     }
 
     widget.notifyParent();
@@ -145,7 +136,7 @@ class _NotesViewerState extends State<NotesViewer> {
         IconButton(
             icon: Icon(Icons.file_download),
             onPressed: () {
-              _handlerNoteWithFileDownloadFileButton(fileName);
+              _handlerNoteWithFileDownloadFileButton(model.fileName);
             }),
       ],
     );
@@ -171,7 +162,7 @@ class _NotesViewerState extends State<NotesViewer> {
     );
     return ElevatedButton(
       onPressed: () {
-        _handlerDeleteButton(selectedTime);
+        _handlerDeleteButton(model.selectedTime);
       },
       style: style,
       child: Text(
@@ -244,12 +235,12 @@ class _NotesViewerState extends State<NotesViewer> {
       }
       String time = _formatterTime.format(dateTime);
       String date = _formatterDate.format(dateTime);
-      if (timesList == null || timesList.length < 5) {
+      if (model.timesList == null || model.timesList.length < 5) {
         await _notesViewerController.createNote(date, time, text);
-        if (pathUserFile != null) {
+        if (model.pathUserFile != null) {
           // await _notesViewerController.attachFileToNote();
-          await httpLib.upload(main.userId.toString(), date, time, pathUserFile);
-          pathUserFile = null;
+          await httpLib.upload(model.userId.toString(), date, time, model.pathUserFile);
+          model.pathUserFile = null;
         }
         await _notesViewerController.updateCalendarNotes();
         await _notesViewerController.updateDayNotesList();
@@ -260,7 +251,7 @@ class _NotesViewerState extends State<NotesViewer> {
   }
 
   Future<void> _handlerAlertDialogDownloadFileButton() async{
-    pathUserFile = await _notesViewerController.getFileFromMemory();
+    model.pathUserFile = await _notesViewerController.getFileFromMemory();
   }
 
   Future<void> _handlerDeleteButton(String time) async {
@@ -273,9 +264,9 @@ class _NotesViewerState extends State<NotesViewer> {
   }
 
   Future<void> _handlerNoteWithFileDownloadFileButton(String fileName) async{
-    String date = _formatterDate.format(main.selectedDate);
-    String time = selectedTime;
-    await _notesViewerController.downloadFile(main.userId.toString(), date, time, fileName);
+    String date = _formatterDate.format(model.selectedDate);
+    String time = model.selectedTime;
+    await _notesViewerController.downloadFile(model.userId.toString(), date, time, fileName);
   }
 
   String _reformatTime(String befTime) {

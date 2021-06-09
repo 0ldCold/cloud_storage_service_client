@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_date_pickers/flutter_date_pickers.dart' as dp;
 import 'package:intl/intl.dart';
 
-import 'package:cloud_storage_service_client/main.dart' as main;
 import 'package:cloud_storage_service_client/controller/httpLib.dart' as httpLib;
 import 'package:cloud_storage_service_client/model/entities/event.dart';
+import 'package:cloud_storage_service_client/model/NotesViewerModel.dart' as model;
 
 class DayPickerPage extends StatefulWidget {
   final Function() notifyParent;
@@ -51,7 +51,7 @@ class _DayPickerPageState extends State<DayPickerPage> {
             BoxDecoration(color: selectedSingleDateDecorationColor, shape: BoxShape.circle));
 
     return dp.DayPicker.single(
-      selectedDate: main.selectedDate,
+      selectedDate: model.selectedDate,
       onChanged: _onSelectedDateChanged,
       firstDate: _firstDate,
       lastDate: _lastDate,
@@ -62,18 +62,18 @@ class _DayPickerPageState extends State<DayPickerPage> {
   }
 
   void _onSelectedDateChanged(DateTime newDate) {
-    main.selectedDate = newDate;
-    main.mode = 1;
+    model.selectedDate = newDate;
+    model.mode = 1;
     String date = formatter.format(newDate);
-    httpLib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
-      main.messageText = messageBody;
+    httpLib.sendRequestGet('view', model.userId.toString(), date).then((messageBody) {
+      model.messageText = messageBody;
       widget.notifyParent();
     });
 
   }
 
   dp.EventDecoration _eventDecorationBuilder(DateTime date) {
-    List<DateTime> eventsDates = main.events?.map<DateTime>((Event e) => e.date)?.toList();
+    List<DateTime> eventsDates = model.events?.map<DateTime>((Event e) => e.date)?.toList();
     bool isEventDate = eventsDates?.any(
             (DateTime d) => date.year == d.year && date.month == d.month && d.day == date.day) ??
         false;

@@ -2,21 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logger/logger.dart';
 
-import 'view/NotesViewer.dart';
-import 'controller/DayPickerPage.dart';
-import 'model/entities/event.dart';
-import 'controller/httpLib.dart' as http;
+import 'package:cloud_storage_service_client/view/NotesViewer.dart';
+import 'package:cloud_storage_service_client/controller/DayPickerPage.dart';
+import 'package:cloud_storage_service_client/controller/httpLib.dart' as http;
+import 'package:cloud_storage_service_client/model/NotesViewerModel.dart' as model;
 
 var logger = Logger();
 final String serverURI = 'http://92.255.182.216:8000/';
-DateTime selectedDate = DateTime.now();
-String messageText = '';
-/// 1 - выбрана дата
-/// 2 - выбрана запись
-///
-int mode = 0;
-int userId = 1;
-List<Event> events;
 
 _MyAppState myAppState = new _MyAppState();
 
@@ -29,7 +21,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     http.initAllEntry('1').then((newEvents) {
-      events = newEvents;
+      model.events = newEvents;
       http.requestPermission();
     });
   }

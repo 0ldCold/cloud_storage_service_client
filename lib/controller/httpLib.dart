@@ -85,7 +85,7 @@ Future<String> sendRequestPost(String serverMethod,
 } //_sendRequestGet
 
 Future<List<Event>> initAllEntry(String id) async {
-  var eventList = [];
+  List<Event> eventList = [];
   String messageBody = await sendRequestGet('view', id);
   if (messageBody != "") {
     List<String> responseList = jsonToList(messageBody);
@@ -104,6 +104,7 @@ Future<String> upload(String id, String date, String time, File imageFile) async
   final formatter = new DateFormat('dd.MM.yyyy HH:mm:ss');
   final dateNow = formatter.format(DateTime.now());
 
+  // ignore: deprecated_member_use
   var stream = new http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
   var length = await imageFile.length();
   var uri = Uri.parse(main.serverURI + "file/$id/$date/$time");
