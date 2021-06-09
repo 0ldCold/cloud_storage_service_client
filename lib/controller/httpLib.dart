@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
@@ -8,9 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../model/entities/event.dart';
-import '../main.dart' as main;
-import 'json.dart';
+import 'package:cloud_storage_service_client/model/entities/event.dart';
+import 'package:cloud_storage_service_client/main.dart' as main;
+import 'package:cloud_storage_service_client/controller/json.dart';
 
 Future<String> sendRequestGet(String serverMethod, [String id, String date, String time, String mod]) async {
   String uri = main.serverURI + serverMethod;
@@ -86,7 +85,7 @@ Future<String> sendRequestPost(String serverMethod,
 } //_sendRequestGet
 
 Future<List<Event>> initAllEntry(String id) async {
-  var eventList = List<Event>();
+  var eventList = [];
   String messageBody = await sendRequestGet('view', id);
   if (messageBody != "") {
     List<String> responseList = jsonToList(messageBody);

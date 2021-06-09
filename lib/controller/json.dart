@@ -1,5 +1,3 @@
-import '../main.dart' as main;
-
 import 'dart:convert';
 
 List<String> jsonToList(String jsonString){

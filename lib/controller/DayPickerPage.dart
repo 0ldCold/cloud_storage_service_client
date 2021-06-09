@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_date_pickers/flutter_date_pickers.dart' as dp;
 import 'package:intl/intl.dart';
 
-import '../main.dart' as main;
-import 'Http.dart' as httpLib;
-import '../model/entities/event.dart';
+import 'package:cloud_storage_service_client/main.dart' as main;
+import 'package:cloud_storage_service_client/controller/httpLib.dart' as httpLib;
+import 'package:cloud_storage_service_client/model/entities/event.dart';
 
 class DayPickerPage extends StatefulWidget {
   final Function() notifyParent;

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
-import 'view/EntrySelection.dart';
+import 'view/NotesViewer.dart';
 import 'controller/DayPickerPage.dart';
 import 'model/entities/event.dart';
-import 'controller/Http.dart' as http;
+import 'controller/httpLib.dart' as http;
 
 var logger = Logger();
 final String serverURI = 'http://92.255.182.216:8000/';
@@ -22,7 +21,6 @@ List<Event> events;
 _MyAppState myAppState = new _MyAppState();
 
 class _MyAppState extends State<MyApp> {
-  final _formatterDate = new DateFormat('yyyyMMdd');
 
   refresh() {
     setState(() {});
@@ -51,7 +49,7 @@ class _MyAppState extends State<MyApp> {
             ),
             Expanded(
               flex: 1,
-              child: EntrySelection(notifyParent: refresh),
+              child: NotesViewer(notifyParent: refresh),
             ),
           ],
         )));
