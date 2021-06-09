@@ -39,24 +39,21 @@ class _NotesViewerState extends State<NotesViewer> {
   @override
   Widget build(BuildContext context) {
     switch (model.mode) {
-      case 1:
+      case 1: //Список записей
         {
           model.timesList = null;
-          //Список записей
           if (model.messageText.isEmpty) {
             break;
           }
           model.timesList = jsonToList(model.messageText);
           return _buildNoteList();
         }
-      case 2:
+      case 2: //Запись без файла
         {
-          //Запись без файла
           return _buildNoteWithoutFile(model.noteText);
         }
-      case 3:
+      case 3: //Запись с файлом
         {
-          //Запись с файлом
           return _buildNoteWithFile(model.noteText);
         }
     }
