@@ -24,6 +24,7 @@ class _EntrySelectionState extends State<EntrySelection> {
   String selectedTime;
   String noteText;
   bool fileCheck;
+  String fileName;
 
   final myController = TextEditingController();
   File pathUserFile;
@@ -96,9 +97,10 @@ class _EntrySelectionState extends State<EntrySelection> {
                               noteText = jsonGetNoteText(messageBody);
                               myHTTPlib
                                   .sendRequestGet(
-                                      'file', main.userId.toString(), date, selectedTime, 'check')
+                                      'file', main.userId.toString(), date, selectedTime, 'name')
                                   .then((value) {
-                                fileCheck = value == 'true' ? true : false;
+                                    fileName = value;
+                                fileCheck = fileName!=null && fileName.isNotEmpty;
                                 if(fileCheck)
                                   main.mode = 3;
                                 else
@@ -145,7 +147,7 @@ class _EntrySelectionState extends State<EntrySelection> {
         IconButton(
             icon: Icon(Icons.file_download),
             onPressed: () {
-              _downloadEntry("test.txt");
+              _downloadEntry(fileName);
             }),
       ],
     );
@@ -265,7 +267,11 @@ class _EntrySelectionState extends State<EntrySelection> {
           .then((res) {
         myHTTPlib.initAllEntry(main.userId.toString()).then((newEvents) {
           main.events = newEvents;
-          widget.notifyParent();
+          String date = _formatterDate.format(main.selectedDate);
+          myHTTPlib.sendRequestGet('view', main.userId.toString(), date).then((messageBody) {
+            main.messageText = messageBody;
+            widget.notifyParent();
+          });
         });
       });
     }
