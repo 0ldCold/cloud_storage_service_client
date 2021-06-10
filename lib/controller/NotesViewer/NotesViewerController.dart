@@ -19,8 +19,7 @@ class NotesViewerController {
   //String date = _formatterDate.format(dateTime);
 
   Future<void> updateCalendarNotes() async {
-    var newEvents = await httpLib.initAllEntry(model.userId.toString());
-    model.events = newEvents;
+    model.events = await httpLib.initAllEntry(model.userId.toString());
   }
 
   Future<void> updateDayNotesList() async {
