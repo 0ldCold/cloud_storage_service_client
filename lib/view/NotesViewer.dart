@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:cloud_storage_service_client/controller/httpLib.dart' as httpLib;
 import 'package:cloud_storage_service_client/controller/json.dart';
 import 'package:cloud_storage_service_client/controller/NotesViewer/NotesViewerController.dart';
 import 'package:cloud_storage_service_client/model/NotesViewerModel.dart' as model;
+
+//ToDo сделать нормальный MVC: вытащить от сюда прямое изменение данных модели
 
 class NotesViewer extends StatefulWidget {
   final Function() notifyParent;
@@ -223,10 +224,9 @@ class _NotesViewerState extends State<NotesViewer> {
   }
 
   Future<void> _handlerAlertDialogSubmitButton([DateTime dateTime]) async {
-    if (alertDialogController.text != null &&
-        alertDialogController.text.isNotEmpty &&
-        alertDialogController.text.trim().isNotEmpty) {
-      String text = alertDialogController.text;
+    String text = alertDialogController.text;
+    if (text != null &&
+        text.trim().isNotEmpty) {
       if (dateTime == null) {
         dateTime = DateTime.now();
       }
@@ -235,9 +235,7 @@ class _NotesViewerState extends State<NotesViewer> {
       if (model.timesList == null || model.timesList.length < 5) {
         await _notesViewerController.createNote(date, time, text);
         if (model.pathUserFile != null) {
-          // await _notesViewerController.attachFileToNote();
-          await httpLib.upload(model.userId.toString(), date, time, model.pathUserFile);
-          model.pathUserFile = null;
+          await _notesViewerController.uploadFile(date, time);
         }
         await _notesViewerController.updateCalendarNotes();
         await _notesViewerController.updateDayNotesList();

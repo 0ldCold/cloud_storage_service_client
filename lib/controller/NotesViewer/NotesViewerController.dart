@@ -71,4 +71,9 @@ class NotesViewerController {
   Future<String> getNoteFileName(String date, String time) async{
     return httpLib.sendRequestGet('file', model.userId.toString(), date, time, 'name');
   }
+
+  Future<void> uploadFile(String date, String time) async{
+    await httpLib.upload(model.userId.toString(), date, time, model.pathUserFile);
+    model.pathUserFile = null;
+  }
 }

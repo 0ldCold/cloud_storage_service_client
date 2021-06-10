@@ -6,9 +6,10 @@ import 'package:cloud_storage_service_client/view/NotesViewer.dart';
 import 'package:cloud_storage_service_client/controller/DayPickerPage.dart';
 import 'package:cloud_storage_service_client/controller/httpLib.dart' as http;
 import 'package:cloud_storage_service_client/model/NotesViewerModel.dart' as model;
+import 'properties.dart' as properties;
 
 var logger = Logger();
-final String serverURI = 'http://92.255.182.216:8000/';
+final String serverURI = 'http://'+properties.ipAndPort+'/'; //http://ip:port/
 
 _MyAppState myAppState = new _MyAppState();
 
