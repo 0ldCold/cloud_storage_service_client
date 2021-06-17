@@ -57,9 +57,18 @@ class NotesViewerController {
   }
 
   Future<File> getFileFromMemory() async {
-    return FilePicker.getFile().catchError((error) {
-      logger.e(error);
-    });
+    try{
+      FilePickerResult result = await FilePicker.platform.pickFiles();
+
+      if(result != null) {
+        return File(result.files.single.path);
+      } else {
+        return null;
+        // User canceled the picker
+      }
+    }catch(e){
+      logger.e(e);
+    }
   }
 
   Future<String> getNoteText(String date, String time) async{

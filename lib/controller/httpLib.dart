@@ -126,5 +126,5 @@ Future<String> upload(String id, String date, String time, File imageFile) async
 }
 
 void requestPermission() {
-  PermissionHandler().requestPermissions([PermissionGroup.storage]);
+  Permission.storage.request();
 }
