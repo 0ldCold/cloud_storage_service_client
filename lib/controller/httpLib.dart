@@ -113,7 +113,7 @@ Future<String> upload(String id, String date, String time, File imageFile) async
       new http.MultipartFile('file', stream, length, filename: basename(imageFile.path));
   request.files.add(multipartFile);
   request.headers
-      .addAll({"Content-Disposition": "attachment; filename=${basename(imageFile.path)}"});
+      .addAll({"Content-Disposition": "attachment; filename*=UTF-8''${Uri.encodeFull(basename(imageFile.path))}"});
   var response = await request.send();
   print('POST     ' +
       dateNow.toString() +
